@@ -170,11 +170,19 @@ Aria enforces a strict **Zero-Data-Collection** policy. No network requests are 
 - Xcode 15+ (for iOS builds)
 - CocoaPods (`sudo gem install cocoapods`)
 
-### Clone and Fetch Dependencies
+> 📖 **Looking for a detailed step-by-step local running guide?**  
+> Check out the [Local Development & Running Guide](file:///d:/Music%20Player/RUNNING_LOCALLY.md) for full instructions on running on Android Emulators, physical Android phones, iOS Simulators, physical iPhones, pushing sample audio files with `adb`, hot-reload tips, and troubleshooting.
+
+### Quick Start (Local Run)
 ```bash
-git clone https://github.com/your-repo/music_player.git
-cd music_player
+# 1. Fetch dependencies
 flutter pub get
+
+# 2. Check available devices/emulators
+flutter devices
+
+# 3. Run the app in debug mode
+flutter run
 ```
 
 ### Running Automated Tests
