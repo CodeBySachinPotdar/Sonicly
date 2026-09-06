@@ -34,7 +34,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
     _positionSubscription = _player.positionStream.listen((_) => _broadcastState());
     _bufferedPositionSubscription = _player.bufferedPositionStream.listen((_) => _broadcastState());
-    _durationSubscription = _player.durationStream.listen((_) => _broadcastState());
+    _durationSubscription = _player.durationStream.listen((d) {
+      if (d != null && d > Duration.zero && mediaItem.value != null && mediaItem.value!.duration != d) {
+        mediaItem.add(mediaItem.value!.copyWith(duration: d));
+      }
+      _broadcastState();
+    });
   }
 
   void _broadcastState() {
@@ -131,7 +136,10 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         return;
       }
 
-      await _player.setFilePath(current.path);
+      final duration = await _player.setFilePath(current.path);
+      if (duration != null && duration > Duration.zero) {
+        mediaItem.add((mediaItem.value ?? _songToMediaItem(current)).copyWith(duration: duration));
+      }
       await _player.play();
       _musicRepository.recordSongPlay(current.id);
     } catch (e) {
@@ -167,6 +175,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> seek(Duration position) async {
     await _player.seek(position);
+    _broadcastState();
   }
 
   @override

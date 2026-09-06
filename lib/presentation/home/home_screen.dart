@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Music Player'),
+        title: const Text('Sonicly'),
         actions: [
           IconButton(
             icon: libraryVM.isScanning

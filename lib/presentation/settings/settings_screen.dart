@@ -96,6 +96,52 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
 
           _buildHeader(theme, 'ABOUT & PRIVACY'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/images/app_icon.png',
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sonicly',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'All your music. One simple player.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'v1.0.0 • Production Build',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           const ListTile(
             leading: Icon(Icons.lock_outline_rounded),
             title: Text('100% Offline & Private'),
@@ -107,16 +153,11 @@ class SettingsScreen extends StatelessWidget {
             onTap: () {
               showLicensePage(
                 context: context,
-                applicationName: 'Music Player',
+                applicationName: 'Sonicly',
                 applicationVersion: '1.0.0',
-                applicationLegalese: 'Free and open-source offline music player.',
+                applicationLegalese: 'All your music. One simple player.',
               );
             },
-          ),
-          const ListTile(
-            leading: Icon(Icons.info_outline_rounded),
-            title: Text('Version'),
-            subtitle: Text('1.0.0 • Production Build'),
           ),
         ],
       ),

@@ -90,7 +90,7 @@ class MusicPlayerApp extends StatelessWidget {
     final settingsVM = context.watch<SettingsViewModel>();
 
     return MaterialApp(
-      title: 'Music Player',
+      title: 'Sonicly',
       debugShowCheckedModeBanner: false,
       themeMode: settingsVM.themeMode,
       theme: AppTheme.lightTheme(),

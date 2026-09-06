@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:music_player/presentation/now_playing/now_playing_screen.dart';
 import 'package:music_player/presentation/theme/app_theme.dart';
 import 'package:music_player/presentation/widgets/artwork_widget.dart';
 import 'package:music_player/presentation/widgets/empty_state.dart';
@@ -56,6 +57,35 @@ void main() {
       expect(light.brightness, Brightness.light);
       expect(dark.brightness, Brightness.dark);
       expect(amoled.scaffoldBackgroundColor, Colors.black);
+    });
+
+    testWidgets('PlayerSeekBar renders durations and invokes onSeek upon slider drag', (tester) async {
+      Duration? seekTarget;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PlayerSeekBar(
+              position: const Duration(seconds: 90), // 1:30
+              duration: const Duration(seconds: 225), // 3:45
+              onSeek: (pos) {
+                seekTarget = pos;
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('1:30'), findsOneWidget);
+      expect(find.text('3:45'), findsOneWidget);
+      expect(find.byType(Slider), findsOneWidget);
+
+      // Drag slider thumb
+      await tester.drag(find.byType(Slider), const Offset(80.0, 0.0));
+      await tester.pumpAndSettle();
+
+      expect(seekTarget, isNotNull);
+      expect(seekTarget!.inSeconds, greaterThan(90));
     });
   });
 }

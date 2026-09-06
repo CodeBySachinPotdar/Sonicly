@@ -1,6 +1,6 @@
-# Aria - High-Fidelity Offline Music Player for Android & iOS
+# Sonicly - All your music. One simple player.
 
-Aria is a production-grade, completely **free**, **ad-free**, and **privacy-first** offline music player engineered with Flutter, Dart, `just_audio`, and `audio_service`. It plays local audio files natively with bit-perfect fidelity, comprehensive metadata parsing, and seamless background lock-screen integration.
+Sonicly is a production-grade, completely **free**, **ad-free**, and **privacy-first** offline music player engineered with Flutter, Dart, `just_audio`, and `audio_service`. It plays local audio files natively with bit-perfect fidelity, comprehensive metadata parsing, and seamless background lock-screen integration.
 
 ---
 

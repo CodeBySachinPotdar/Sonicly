@@ -60,7 +60,11 @@ class PlayerViewModel extends ChangeNotifier {
 
     _mediaItemSubscription = _audioHandler.mediaItem.listen((item) async {
       if (item != null) {
-        _duration = item.duration ?? Duration.zero;
+        _duration = item.duration ?? _audioHandler.player.duration ?? Duration.zero;
+        if (_duration == Duration.zero && _audioHandler.queueManager.currentSong != null) {
+          final ms = _audioHandler.queueManager.currentSong!.durationMs;
+          if (ms > 0) _duration = Duration(milliseconds: ms);
+        }
         _isShuffle = _audioHandler.queueManager.isShuffle;
         _repeatMode = _audioHandler.queueManager.repeatMode;
 

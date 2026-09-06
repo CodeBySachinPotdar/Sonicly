@@ -10,12 +10,6 @@ import '../widgets/song_options_bottom_sheet.dart';
 class NowPlayingScreen extends StatelessWidget {
   const NowPlayingScreen({super.key});
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,8 +30,6 @@ class NowPlayingScreen extends StatelessWidget {
 
     final duration = playerVM.duration;
     final position = playerVM.position;
-    final maxMs = duration.inMilliseconds.toDouble();
-    final valueMs = position.inMilliseconds.toDouble().clamp(0.0, maxMs > 0 ? maxMs : 1.0);
 
     return Scaffold(
       appBar: AppBar(
@@ -149,43 +141,10 @@ class NowPlayingScreen extends StatelessWidget {
                   ),
 
                   // Scrubber Bar & Timestamps
-                  Column(
-                    children: [
-                      SliderTheme(
-                        data: theme.sliderTheme.copyWith(
-                          trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        ),
-                        child: Slider(
-                          value: valueMs,
-                          min: 0.0,
-                          max: maxMs > 0 ? maxMs : 1.0,
-                          onChanged: (val) {
-                            playerVM.seek(Duration(milliseconds: val.toInt()));
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDuration(position),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              _formatDuration(duration),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  PlayerSeekBar(
+                    position: position,
+                    duration: duration,
+                    onSeek: (pos) => playerVM.seek(pos),
                   ),
 
                   // Playback Controls
@@ -518,6 +477,101 @@ class _QueueSheet extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class PlayerSeekBar extends StatefulWidget {
+  final Duration position;
+  final Duration duration;
+  final ValueChanged<Duration> onSeek;
+
+  const PlayerSeekBar({
+    super.key,
+    required this.position,
+    required this.duration,
+    required this.onSeek,
+  });
+
+  @override
+  State<PlayerSeekBar> createState() => _PlayerSeekBarState();
+}
+
+class _PlayerSeekBarState extends State<PlayerSeekBar> {
+  double? _dragValue;
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60);
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final durationMs = widget.duration.inMilliseconds.toDouble();
+    final positionMs = widget.position.inMilliseconds.toDouble();
+
+    // Ensure valid max range to prevent Slider assertion issues
+    final max = durationMs > 0 ? durationMs : 1.0;
+    final activeValue = (_dragValue ?? positionMs).clamp(0.0, max);
+    final displayPosition = Duration(milliseconds: activeValue.toInt());
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SliderTheme(
+          data: theme.sliderTheme.copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: theme.colorScheme.primary,
+            inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+            thumbColor: theme.colorScheme.primary,
+          ),
+          child: Slider(
+            min: 0.0,
+            max: max,
+            value: activeValue,
+            onChangeStart: (val) {
+              setState(() {
+                _dragValue = val;
+              });
+            },
+            onChanged: (val) {
+              setState(() {
+                _dragValue = val;
+              });
+            },
+            onChangeEnd: (val) {
+              widget.onSeek(Duration(milliseconds: val.toInt()));
+              setState(() {
+                _dragValue = null;
+              });
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatDuration(displayPosition),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                _formatDuration(widget.duration),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
