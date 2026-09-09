@@ -65,6 +65,35 @@ class SettingsScreen extends StatelessWidget {
                     height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
+                : const Icon(Icons.more_time_rounded),
+            title: const Text('Scan Recently Added Songs'),
+            subtitle: const Text('Quickly discover songs added or modified in the last 7 days'),
+            onTap: libraryVM.isScanning
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final result = await libraryVM.scanRecentlyAddedSongs();
+                    if (result != null && context.mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            result.newSongsAdded > 0
+                                ? 'Found and added ${result.newSongsAdded} new song(s)!'
+                                : 'No new songs discovered.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+          ),
+          ListTile(
+            leading: libraryVM.isScanning
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.sync_rounded),
             title: const Text('Rescan Device Music'),
             subtitle: Text(
@@ -115,7 +144,7 @@ class SettingsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sonicly',
+                        'LocalTune Music Player',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.5,
@@ -153,7 +182,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () {
               showLicensePage(
                 context: context,
-                applicationName: 'Sonicly',
+                applicationName: 'LocalTune Music Player',
                 applicationVersion: '1.0.0',
                 applicationLegalese: 'All your music. One simple player.',
               );

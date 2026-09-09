@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../../domain/album.dart';
 import '../../domain/artist.dart';
 import '../../domain/playback.dart';
@@ -383,6 +384,32 @@ class MusicRepositoryImpl implements MusicRepository {
   }) async {
     final dir = Directory(path);
     return await FileScanner.scanDirectory(dir, onProgress: onProgress);
+  }
+
+  @override
+  Future<ScanResult> scanRecentlyAdded({
+    Duration recentWindow = const Duration(days: 7),
+    void Function(int current, String fileName)? onProgress,
+  }) async {
+    final List<String> pathsToScan = [];
+    if (Platform.isAndroid) {
+      pathsToScan.addAll([
+        '/storage/emulated/0/Music',
+        '/storage/emulated/0/Download',
+        '/storage/emulated/0/Audio',
+        '/storage/emulated/0/Recordings',
+      ]);
+    } else {
+      final docs = await getApplicationDocumentsDirectory();
+      pathsToScan.add(docs.path);
+    }
+
+    final directories = pathsToScan.map((p) => Directory(p)).toList();
+    return await FileScanner.scanRecentlyAdded(
+      directories: directories,
+      recentWindow: recentWindow,
+      onProgress: onProgress,
+    );
   }
 
   @override

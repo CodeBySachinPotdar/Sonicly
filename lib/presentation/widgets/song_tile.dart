@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/song.dart';
+import '../view_models/library_view_model.dart';
 import '../view_models/player_view_model.dart';
 import 'artwork_widget.dart';
 import 'song_options_bottom_sheet.dart';
@@ -108,6 +109,18 @@ class SongTile extends StatelessWidget {
                 ),
               ),
             ),
+          IconButton(
+            icon: Icon(
+              song.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: song.isFavorite ? Colors.redAccent : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
+            iconSize: 20,
+            splashRadius: 20,
+            tooltip: song.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            onPressed: () {
+              context.read<LibraryViewModel>().toggleFavorite(song);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert_rounded),
             iconSize: 20,

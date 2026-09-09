@@ -58,6 +58,35 @@ class _SongsScreenState extends State<SongsScreen> {
             },
           ),
           IconButton(
+            icon: libraryVM.isScanning
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.more_time_rounded),
+            tooltip: 'Scan Recently Added Songs',
+            onPressed: libraryVM.isScanning
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final result = await libraryVM.scanRecentlyAddedSongs();
+                    if (result != null && context.mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            result.newSongsAdded > 0
+                                ? 'Found and added ${result.newSongsAdded} new song(s)!'
+                                : 'No new songs found.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+          ),
+          IconButton(
             icon: const Icon(Icons.sort_rounded),
             tooltip: 'Sort Songs',
             onPressed: () => _showSortModal(context, libraryVM),

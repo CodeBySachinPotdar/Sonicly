@@ -53,5 +53,10 @@ abstract class MusicRepository {
     void Function(int current, String fileName)? onProgress,
   });
 
+  Future<dynamic> scanRecentlyAdded({
+    Duration recentWindow = const Duration(days: 7),
+    void Function(int current, String fileName)? onProgress,
+  });
+
   Future<void> clearHistory();
 }

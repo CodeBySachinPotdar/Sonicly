@@ -7,6 +7,18 @@ import '../cache/artwork_cache.dart';
 import '../database/app_database.dart';
 import '../metadata/audio_metadata_reader.dart';
 
+class ScanResult {
+  final int totalFilesScanned;
+  final int newSongsAdded;
+  final List<Song> newSongs;
+
+  const ScanResult({
+    required this.totalFilesScanned,
+    required this.newSongsAdded,
+    required this.newSongs,
+  });
+}
+
 class FileScanner {
   static const Set<String> supportedExtensions = {
     '.mp3',
@@ -131,6 +143,126 @@ class FileScanner {
     await _cleanupDeadFiles(db);
 
     return scannedCount;
+  }
+
+  /// Scans specifically for recently added or updated audio files across directories.
+  /// Discovers newly created audio files or files modified within [recentWindow].
+  static Future<ScanResult> scanRecentlyAdded({
+    required List<Directory> directories,
+    Duration recentWindow = const Duration(days: 7),
+    void Function(int count, String currentFileName)? onProgress,
+  }) async {
+    final db = await AppDatabase.instance.database;
+
+    // Fetch existing song modified times
+    final existingSongsRows = await db.rawQuery(
+      'SELECT id, path, date_modified FROM songs',
+    );
+    final Map<String, int> existingFiles = {
+      for (final row in existingSongsRows)
+        row['path'] as String: (row['date_modified'] as num).toInt(),
+    };
+
+    final cutoffMs = DateTime.now().subtract(recentWindow).millisecondsSinceEpoch;
+    final List<File> candidateFiles = [];
+
+    for (final dir in directories) {
+      if (!await dir.exists()) continue;
+      try {
+        await for (final entity in dir.list(recursive: true, followLinks: false)) {
+          if (entity is File) {
+            final ext = p.extension(entity.path).toLowerCase();
+            if (supportedExtensions.contains(ext)) {
+              candidateFiles.add(entity);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (candidateFiles.isEmpty) {
+      return const ScanResult(totalFilesScanned: 0, newSongsAdded: 0, newSongs: []);
+    }
+
+    int scannedCount = 0;
+    final List<Song> newlyAddedSongs = [];
+    final List<Song> batchToInsert = [];
+
+    for (final file in candidateFiles) {
+      final path = file.path;
+      final fileName = p.basename(path);
+      scannedCount++;
+      onProgress?.call(scannedCount, fileName);
+
+      try {
+        final stat = await file.stat();
+        final modifiedMs = stat.modified.millisecondsSinceEpoch;
+        final changedMs = stat.changed.millisecondsSinceEpoch;
+
+        final isKnown = existingFiles.containsKey(path);
+        final isModifiedRecently = modifiedMs >= cutoffMs || changedMs >= cutoffMs;
+
+        // If file is already in DB and unchanged, skip
+        if (isKnown && existingFiles[path] == modifiedMs && !isModifiedRecently) {
+          continue;
+        }
+
+        if (isKnown && existingFiles[path] == modifiedMs) {
+          continue;
+        }
+
+        final metadata = await AudioMetadataReader.readMetadata(file);
+        final songId = generateId(path);
+
+        String? artworkPath;
+        if (metadata.artworkBytes != null && metadata.artworkBytes!.isNotEmpty) {
+          artworkPath = await ArtworkCache.instance.saveArtwork(
+            songId,
+            metadata.artworkBytes!,
+            extension: metadata.artworkMime?.contains('png') == true ? 'png' : 'jpg',
+          );
+        }
+
+        final song = Song(
+          id: songId,
+          path: path,
+          title: metadata.title,
+          artist: metadata.artist,
+          album: metadata.album,
+          albumArtist: metadata.albumArtist,
+          durationMs: metadata.durationMs,
+          size: stat.size,
+          dateAdded: changedMs > 0 ? changedMs : modifiedMs,
+          dateModified: modifiedMs,
+          format: p.extension(path).replaceFirst('.', '').toLowerCase(),
+          trackNumber: metadata.trackNumber,
+          discNumber: metadata.discNumber,
+          year: metadata.year,
+          genre: metadata.genre,
+          artworkPath: artworkPath,
+          hasArtwork: artworkPath != null,
+        );
+
+        batchToInsert.add(song);
+        newlyAddedSongs.add(song);
+
+        if (batchToInsert.length >= 50) {
+          await _insertBatch(db, batchToInsert);
+          batchToInsert.clear();
+        }
+      } catch (_) {}
+    }
+
+    if (batchToInsert.isNotEmpty) {
+      await _insertBatch(db, batchToInsert);
+      batchToInsert.clear();
+    }
+
+    return ScanResult(
+      totalFilesScanned: scannedCount,
+      newSongsAdded: newlyAddedSongs.length,
+      newSongs: newlyAddedSongs,
+    );
   }
 
   static Future<void> _insertBatch(Database db, List<Song> songs) async {

@@ -34,8 +34,37 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sonicly'),
+        title: const Text('LocalTune'),
         actions: [
+          IconButton(
+            icon: libraryVM.isScanning
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.more_time_rounded),
+            tooltip: 'Scan Recently Added Songs',
+            onPressed: libraryVM.isScanning
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final result = await libraryVM.scanRecentlyAddedSongs();
+                    if (result != null && context.mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            result.newSongsAdded > 0
+                                ? 'Found and added ${result.newSongsAdded} new song(s)!'
+                                : 'No new songs found.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+          ),
           IconButton(
             icon: libraryVM.isScanning
                 ? const SizedBox(
@@ -147,6 +176,29 @@ class HomeScreen extends StatelessWidget {
                 theme,
                 'Recently Added',
                 onSeeAll: () => onNavigateToTab?.call(1),
+                action: TextButton.icon(
+                  icon: const Icon(Icons.more_time_rounded, size: 16),
+                  label: const Text('Scan New'),
+                  onPressed: libraryVM.isScanning
+                      ? null
+                      : () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final result = await libraryVM.scanRecentlyAddedSongs();
+                          if (result != null && context.mounted) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  result.newSongsAdded > 0
+                                      ? 'Found and added ${result.newSongsAdded} new song(s)!'
+                                      : 'No new songs found.',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                ),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -314,7 +366,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title, {VoidCallback? onSeeAll}) {
+  Widget _buildSectionHeader(
+    ThemeData theme,
+    String title, {
+    VoidCallback? onSeeAll,
+    Widget? action,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -324,11 +381,17 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        if (onSeeAll != null)
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See All'),
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ?action,
+            if (onSeeAll != null)
+              TextButton(
+                onPressed: onSeeAll,
+                child: const Text('See All'),
+              ),
+          ],
+        ),
       ],
     );
   }

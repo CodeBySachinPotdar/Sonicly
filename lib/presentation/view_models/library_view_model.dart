@@ -101,12 +101,60 @@ class LibraryViewModel extends ChangeNotifier {
     final isFav = await _musicRepository.toggleFavorite(song.id);
     _favorites = await _musicRepository.getFavorites();
 
-    // Update in song list
-    final idx = _songs.indexWhere((s) => s.id == song.id);
-    if (idx != -1) {
-      _songs[idx] = _songs[idx].copyWith(isFavorite: isFav);
+    void updateInList(List<Song> list) {
+      final idx = list.indexWhere((s) => s.id == song.id);
+      if (idx != -1) {
+        list[idx] = list[idx].copyWith(isFavorite: isFav);
+      }
     }
+
+    updateInList(_songs);
+    updateInList(_recentlyPlayed);
+    updateInList(_mostPlayed);
+    updateInList(_recentlyAdded);
+
     notifyListeners();
+  }
+
+  /// Scans device storage specifically for newly or recently added audio files.
+  Future<dynamic> scanRecentlyAddedSongs({
+    Duration recentWindow = const Duration(days: 7),
+  }) async {
+    if (_isScanning) return null;
+    _isScanning = true;
+    _scannedCount = 0;
+    _currentScanFile = '';
+    notifyListeners();
+
+    try {
+      if (Platform.isAndroid) {
+        var status = await Permission.audio.status;
+        if (!status.isGranted) {
+          status = await Permission.audio.request();
+        }
+        if (!status.isGranted) {
+          var storageStatus = await Permission.storage.status;
+          if (!storageStatus.isGranted) {
+            await Permission.storage.request();
+          }
+        }
+      }
+
+      final result = await _musicRepository.scanRecentlyAdded(
+        recentWindow: recentWindow,
+        onProgress: (count, file) {
+          _scannedCount = count;
+          _currentScanFile = file;
+          notifyListeners();
+        },
+      );
+
+      await loadLibrary();
+      return result;
+    } finally {
+      _isScanning = false;
+      notifyListeners();
+    }
   }
 
   Future<void> requestPermissionsAndScan() async {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:music_player/data/scanner/file_scanner.dart';
 import 'package:music_player/domain/album.dart';
 import 'package:music_player/domain/artist.dart';
 import 'package:music_player/domain/playlist.dart';
@@ -102,6 +103,32 @@ void main() {
 
       expect(playlist.songCount, 2);
       expect(playlist.durationFormatted, '5m 0s');
+    });
+
+    test('ScanResult model properties', () {
+      const s = Song(
+        id: '1',
+        path: '/a.mp3',
+        title: 'Song 1',
+        artist: 'Artist 1',
+        album: 'Album 1',
+        durationMs: 120000,
+        size: 1000,
+        dateAdded: 0,
+        dateModified: 0,
+        format: 'mp3',
+      );
+
+      const result = ScanResult(
+        totalFilesScanned: 10,
+        newSongsAdded: 1,
+        newSongs: [s],
+      );
+
+      expect(result.totalFilesScanned, 10);
+      expect(result.newSongsAdded, 1);
+      expect(result.newSongs.length, 1);
+      expect(result.newSongs.first.title, 'Song 1');
     });
   });
 }

@@ -1,6 +1,6 @@
-# Sonicly - All your music. One simple player.
+# LocalTune Music Player - All your music. One simple player.
 
-Sonicly is a production-grade, completely **free**, **ad-free**, and **privacy-first** offline music player engineered with Flutter, Dart, `just_audio`, and `audio_service`. It plays local audio files natively with bit-perfect fidelity, comprehensive metadata parsing, and seamless background lock-screen integration.
+LocalTune Music Player is a production-grade, completely **free**, **ad-free**, and **privacy-first** offline music player engineered with Flutter, Dart, `just_audio`, and `audio_service`. It plays local audio files natively with bit-perfect fidelity, comprehensive metadata parsing, and seamless background lock-screen integration.
 
 ---
 
@@ -9,6 +9,8 @@ Sonicly is a production-grade, completely **free**, **ad-free**, and **privacy-f
 - **100% Offline & Private**: Zero accounts, zero tracking, zero telemetry, zero cloud dependencies, and zero advertisements.
 - **Universal Codec Support**: Plays MP3, AAC, M4A, FLAC, WAV, OGG, OPUS, and AIFF files up to 24-bit/192kHz.
 - **Pure Dart Metadata Engine**: Zero native dependencies for tag parsing. Extracts ID3v1, ID3v2.2-2.4, MP4 atoms, Vorbis comments, and RIFF chunks, including embedded APIC/cover artwork.
+- **Fast Incremental Scanner**: Easily scan recently added songs without re-indexing your entire storage, keeping your music library effortlessly up to date.
+- **Direct Favorites Integration**: Heart icon directly on every song item across all lists for instant single-tap addition to Favorites.
 - **Background Playback & Lock-screen Controls**: Full integration with Android `MediaSession` & iOS `MPNowPlayingInfoCenter` / `MPRemoteCommandCenter`.
 - **Intelligent Audio Focus**:
   - Handles incoming phone calls and alarms (auto-pauses and resumes).
